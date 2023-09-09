@@ -102,7 +102,7 @@
 ## Colunm-oriented storage
 
 - in OLAP we rarely use SELECT *
-- In joins all the columns are loaded 
+- In joins all the columns are loaded
 - We store data by column instead of storing them by row
 - Event if each column is in a separate file, we load it alone
 
