@@ -5,14 +5,14 @@
 ## Introduction
 
 - In chapter 5, we discussed storing the same copy of the whole database
-- This will not be suffecient in large data sets
+- This will not be sufficient in large data sets
 - We will need to break the data up into partitions (Sharding)
 - The main reason for wanting to partition data is scalability
-- Horizontal scalling is cheaper and has a batter performace than vertical scalling
+- Horizontal scaling is cheaper and has a batter performace than vertical scaling
 
 ## Partitioning and Replication
 
-- Partitioning is usually combined with replcation
+- Partitioning is usually combined with replication
 - Each node has part of the data (partitioning)
 - Each node is copied in other nodes (Replication)
 
@@ -26,7 +26,7 @@
 
 - Suppose the keys are names of persons in books
 - Each partition has a range (minimum and maximum) of letters
-- The ranges can be chosed manually and automatically
+- The ranges can be chosen manually and automatically
 - This can be very useful for timestamps keys
 - Because of the access patterns, there may be hotspots, like when you are sending the data to this day, and all the partitions are idle
 - You can put the sensor name as a prefix to the timestamp partitioning
@@ -68,7 +68,7 @@
 
 ## Rebalancing Partitions
 
-- Overtime databases change
+- Over time databases change
   - You need to add more CPUs
   - You need to add more disks
   - You need to replace other nodes
@@ -101,7 +101,7 @@
   - In dynamic partitioning the size of partitions is related to the size of the dataset
   - In Cassandra and Ketama the size of the partitions is proportional to the number of nodes
 
-### Atomic or Manual Rebalancing
+### Automatic or Manual Rebalancing
 
 - There are automatic rebalancing but it is a good idea to keep a human on the top levels
 
@@ -111,7 +111,7 @@
 - It is an instance of a more larger problem called service discovery
 - On high level there are a few differnt approaches:
   - Allow clients to connect to any node, then this node routes
-  - Send all request to routing tier first
+  - Send all requests to routing tier first
   - Require the client to be aware of the partition
 - In all cases, the key problem is how the dicision is made
 - Many distributes systems rely on a separate coordination service like ZooKeeper
@@ -121,7 +121,7 @@
 - Cassandra and Riak use a different approach: `gossip protocol` (The first approach)
 - Couchbase doesn't rebalance automatically
 
-### Paraller Query Execution
+### Parallel Query Execution
 
 - MPP `Massively parallel processing`
 - Large queries can use it to process all the data in the requested partitions in parallel
