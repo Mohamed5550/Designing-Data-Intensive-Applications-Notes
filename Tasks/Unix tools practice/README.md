@@ -7,7 +7,7 @@ In this task I will use unix tools to manipulate the nginx access log and save t
 ### 1- Top 5 visited pages
 
 ```bash
-cat access.log | awk '{print $7}' | sort | uniq -c | sort -n -r | head -n 5 > "1- top visited pages.txt"
+awk '{print $7}' access.log | sort | uniq -c | sort --parallel=$(nproc) -n -r | head -n 5 > "1- top visited pages.txt"
 ```
 
 ### 2- Top 5 visited pages except '*'
