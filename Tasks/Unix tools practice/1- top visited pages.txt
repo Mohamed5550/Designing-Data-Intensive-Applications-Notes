@@ -1,0 +1,5 @@
+   1067 /theme_madina/images/authorDefault.png
+    609 /
+    558 *
+    289 /phpmyadmin/index.php?route=/lint
+    260 /ajax/ajaxWidgets
