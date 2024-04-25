@@ -2,10 +2,10 @@
 
     A complex system that works is invariably found to have evolved from a simple system that works. The inverse proposition also appears to be true: A complex system designed from scratch never works and cannot be made to work.
 
-- We saw in chapter 10 how to create batch processes that is helpful in search indexex, analytics and more
+- We saw in chapter 10 how to create batch processes that is helpful in search indexes, analytics and more
 - Batch processing assumes that the data is finite, so we can run it after every hour or every day, like sorting, we must know all of the data to puth the smallest item in front of it, but most data is unbounded
-- keeping date being processed and returning output continously is stream processing
-- in general `stream` refers to data that is incremently made available over time
+- keeping date being processed and returning output continuously is stream processing
+- in general `stream` refers to data that is incrementally  made available over time
 
 ## Transmitting Event Streams
 
@@ -14,7 +14,7 @@
 - The events might be a user event or a machine event
 - The event is stored in JSON or text format or any binary format like discussed in `chapter 4`
 - Batch vs Stream
-  - in batch processing Files are written and then read by many processes 
+  - in batch processing Files are written and then read by many processes
   - in stream processing events are produces once by a (sender or publisher) and then processed by multiple consumers (subscribers or recipients)
   - In batch processing files are group of related data
   - In stream processing related data are grouped in a stream or a topic
@@ -50,7 +50,7 @@
   - brokers notify the consumers when data change, but databases don't
 
 - message brokers standards: `JMS`, `AMQP`
-- message brokers softwares: `RabbitMQ`, `ActiveMQ`, `HornetMQ`, `Qpid`, `TIBCO`, `IBM MQ`, `Azure Bus`, `Google Could Pub\Sub`
+- message brokers softwares: `RabbitMQ`, `ActiveMQ`, `HornetMQ`, `Qpid`, `TIBCO`, `IBM MQ`, `Azure Bus`, `Google Cloud Pub\Sub`
 
 - Multiple consumers
   - Load Balancing: each message is sent to one consumer
@@ -73,7 +73,7 @@
   - although desk access, they can achieve a throughout of millions of messages per second
   - this approach doesn't need acknowledgements
 
-- Diska space usage
+- Disk space usage
   - The processed messages are divided into segments and the old segments are deleted periodically
   - If the consumers are too slow and the disk of the producer is full, then the new messages override the old messages
 
@@ -81,7 +81,7 @@
 
 ## Database and Streams
 
-    Log-based streams tok some advantages from database and database replication log is a kind of streaming
+    Log-based streams took some advantages from database and database replication log is a kind of streaming
 
 - We want to sync data between databases and streams
 
@@ -95,14 +95,14 @@
 - To keep data in sync between these databases we may use `ETL` like in warehouses, which is a batch process
 - A faster approach is to use `dual writing`, which is to change the data in the second database after you send it to the first one, but it have some problems:
   - Concurrency: concurrency detection
-  - Fault tolerance: 2 phace commit
+  - Fault tolerance: 2 phase commit
 - but it is better if there is only one leader
 
 ### Change Data Capture
 
 - Database logs was external implementation of databases not an API
 - Recently there was an interest about `CDC`, so they decided to take data from database log and replicate it in the same order to other databases
-- Implemenging change data capture
+- Implementing change data capture
   - Database triggers are used to link table records changes to the other database
   - Examples: `LinkedIn's Databus`, `Facebook Wormhole`, `Yahoo!'s Sherpa` use these idea at large scales
   - WAL API examples: `Bottled Water for PostgreSQL`, `Maxwell and Debezium for MySQL`, `Mongoriver for MongoDB`, `GoldenGate for Oracle`
@@ -129,6 +129,7 @@
   - You can product ouput from each input like MapReduce
 - Rest of the chapter is discussion of option 3
 - Sorting doesn't make sense here, because the dataset in unbounded
+- When batch process craches, we can restart it, but restarting a stream process that is running for years is not a viable option
 
 ### Uses of Stream Processing
 
@@ -160,9 +161,73 @@
   - Searching for an event with a complex query
   - Like informing a client when there is a property matching its criteria
   - procolator feature of `Elasticsearch` does this
+  - This may be slow if the number of queries gets large
+  - You can index the queries as well and narrow down the set of queries that may match
 
 - Message passing and RPC
 
 ### Reasoning About Time
 
 - We need to know when the even happened not when it is processed
+  - ordering of events may result in bad data
+  - Like a request per minute measure, if there is a restart, many events will be delayed leading to less accurate results
+
+- Knowing when you are ready
+  - If you specify a time windows, you will need to know when to end the window
+  - If there are soem events that struggle in their way you can set timeout then after it you may end the window, there are two options
+    - You can ignor the missing events as they are usually small percent, and track if there is a significant data loss
+    - You can publish a `correction` with the new data to old windows
+
+- Whose clock you are using, anyway?
+  - Suppose you send events from your mobile phone while it is offline, which clock will you use?
+  - Times that user control cannot be trusted
+  - One approach is to log three timestamps
+    - Time event happened in device clock
+    - Time event sent in device clock
+    - Time event recieved in server clock
+  - This issue is not unique to stream processing, batch processing has the same problem too, but they are noticable on stream processing because we are more aware of time passage
+
+- Types of windows
+  - Hubling window: this window has a fixed length,like events from `10:03:00` to `10:03:59`, and the next windows is from `10:04:00` to `10:04:59`
+  - Hopping window: it has a fixed length too, but there are some overlapping to make it more smooth, for example a hopping window of length 5 minutes with a hop of 1 minute can be from `10:03:00` to `10:07:59`, but the next one will be from `10:04:00` to `10:08:00`
+  - Sliding window: this contains all the events that occur in a specified length, ignoring the strict start and end time, for example it can contain events `10:03:22` and event `10:07:44` because the difference between them is less than 5 minues
+  - Session window: this doesn't have limits, but it stores all the events for some user until it become inactive for some time (e.g 30 minutes)
+
+### Stream Joins
+
+- Stream-stream join
+  - Suppose you have a search enging and want to calculate the click per appear for each result
+  - So when the use searched, you send an event containing the returned results
+  - And when the user clicks on one of them, you send an event containing the clicked result
+  - Note that there may be lags or one event arriving without the other
+  - You can store the seach events in an appropriate index and set a window of (for example 1 hour), then when the user clicks on a link, you check if the clicked event in the index, if the events expired without receving the click events, you can mark them as not clicked
+
+- Steam-table join
+  - Take the example of the actions and profiles fto map-reduce chapter
+  - If you want to return profile data with the event, you may send a request over the network to get the real data
+  - Another bad approach is to save the profile data with each even, this may overload the database
+  - Another approach is to keep a local copy of the database to request it instead of sending the request over the network, but in batch processing this was a snapshot, but here the data changes
+  - We can use event logs to update the local database when any profile changes
+
+- Table-table join
+  - You remember the twitter timeline example?
+  - If you want to make this in a stream process you will have to adjust these events
+    - When user `u` follows user `v`, take the recent tweets from `v` and add them to the timeline of user `u`
+    - And the reverse when the user unfollow other user
+    - When a new tweet is added, add it to all users that following the adder
+    - And the reverse when the tweet is removed
+
+- The dependence of joins
+
+### Fault Tolerance
+
+- We saw that in batch processing, fault tolerance is quite easy, when a job fail, we restart it and make the data available when all jobs succeed
+
+- Handling this issues is not easy in stream processing
+
+- Microbatching and checkpoints
+
+- Atomic commit revisted
+
+- Idempotence
+  - 
